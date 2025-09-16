@@ -1,9 +1,11 @@
+import eventlet
+eventlet.monkey_patch()
 import os
 import json
 import time
 import random
 import re
-import eventlet
+
 
 from flask import Flask, request, render_template, session, redirect, url_for, flash, jsonify
 from flask_socketio import join_room, leave_room, SocketIO, emit
@@ -11,7 +13,7 @@ from google.cloud import firestore
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-eventlet.monkey_patch()
+
 import firebase_admin
 from firebase_admin import credentials, auth
 
