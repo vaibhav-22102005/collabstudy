@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to CollabStudy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+      rel="stylesheet" />
+    <style>
+      :root {
+        --background-primary: #121212;
+        --text-primary: #eaeaea;
+        --primary-accent: #3a82f7;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: var(--background-primary);
+        color: var(--text-primary);
+        margin: 0;
+        text-align: center;
+      }
+      .login-container {
+        padding: 40px;
+      }
+      h1 {
+        font-size: 3rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+      }
+      p {
+        font-size: 1.2rem;
+        margin-bottom: 40px;
+        color: #a0a0a0;
+      }
+      .google-login-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 24px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #fff;
+        background-color: var(--primary-accent);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.3s, transform 0.2s;
+        gap: 12px;
+      }
+      .google-login-btn:hover {
+        background-color: #5a9bff;
+        transform: translateY(-2px);
+      }
+      .google-login-btn svg {
+        width: 24px;
+        height: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <h1>Welcome to CollabStudy</h1>
+      <p>Your collaborative space for synchronized video learning.</p>
+
+      <button id="google-login-btn" class="google-login-btn">
+        <svg viewBox="0 0 24 24" fill="white">
+          <path
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+            fill="#4285F4" />
+          <path
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            fill="#34A853" />
+          <path
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+            fill="#FBBC05" />
+          <path
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+            fill="#EA4335" />
+          <path d="M1 1h22v22H1z" fill="none" />
+        </svg>
+        Sign in with Google
+      </button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <script>
+      // IMPORTANT: Paste your web app's Firebase configuration from the Firebase Console here
+      const firebaseConfig = {
+        apiKey: "AIzaSyBFGgk5aVsc10bZACagRGOTIwRXPgQ0DKY",
+        authDomain: "collabstudy-dcfa0.firebaseapp.com",
+        projectId: "collabstudy-dcfa0",
+        storageBucket: "collabstudy-dcfa0.firebasestorage.app",
+        messagingSenderId: "844147179059",
+        appId: "1:844147179059:web:d1a0707c78844a848bad46",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+
+      const auth = firebase.auth();
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const loginButton = document.getElementById("google-login-btn");
+
+      loginButton.addEventListener("click", () => {
+        loginButton.textContent = "Signing in...";
+        loginButton.disabled = true;
+
+        auth
+          .signInWithPopup(provider)
+          .then((result) => {
+            const user = result.user;
+            return user.getIdToken();
+          })
+          .then((idToken) => {
+            // Send token to your backend to create a session
+            return fetch("/verify-token", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token: idToken }),
+            });
+          })
+          .then((response) => {
+            if (response.ok) {
+              window.location.href = "/dashboard";
+            } else {
+              throw new Error("Server authentication failed.");
+            }
+          })
+          .catch((error) => {
+            console.error("Login Error:", error);
+            alert(`Login failed: ${error.message}`);
+            loginButton.textContent = "Sign in with Google"; // Reset button text
+            loginButton.disabled = false;
+          });
+      });
+    </script>
+  </body>
+</html>

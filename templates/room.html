@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Watch Party Room</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet" />
+    <style>
+      :root {
+        --background-primary: #121212;
+        --background-secondary: #1e1e1e;
+        --background-tertiary: #2c2c2c;
+        --primary-accent: #3a82f7;
+        --primary-accent-hover: #5a9bff;
+        --text-primary: #eaeaea;
+        --text-secondary: #a0a0a0;
+        --border-color: #333333;
+        --online-color: #4caf50;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: var(--background-primary);
+        color: var(--text-primary);
+        overflow: hidden;
+      }
+      .room-title {
+        font-size: 20px;
+        font-weight: 500;
+        text-align: left;
+        padding: 12px 24px;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--background-secondary);
+        flex-shrink: 0;
+      }
+      .main {
+        flex: 1;
+        display: flex;
+        gap: 16px;
+        padding: 16px;
+        overflow: hidden;
+      }
+      .left-panel,
+      .right-panel {
+        background: var(--background-secondary);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+      }
+      .left-panel {
+        flex: 3;
+        padding: 20px;
+      }
+      .video-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .video-controls input {
+        flex-grow: 1;
+        background: var(--background-tertiary);
+        color: var(--text-primary);
+        padding: 12px 18px;
+        font-size: 15px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      .video-controls input:focus {
+        border-color: var(--primary-accent);
+        box-shadow: 0 0 0 3px rgba(58, 130, 247, 0.3);
+      }
+      .video-controls button {
+        padding: 12px 22px;
+        font-size: 15px;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background-color: var(--primary-accent);
+        color: white;
+        transition: background-color 0.2s;
+      }
+      .video-controls button:hover {
+        background-color: var(--primary-accent-hover);
+      }
+      .video-player-container {
+        flex-grow: 1;
+        width: 100%;
+        background-color: #000;
+        border-radius: 12px;
+        overflow: hidden;
+        min-height: 200px;
+      }
+      #youtube-player-div {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+      .right-panel {
+        flex: 1;
+      }
+      .chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 16px;
+        border-bottom: 1px solid var(--border-color);
+        flex-shrink: 0;
+      }
+      .messages-header {
+        font-weight: 600;
+        font-size: 18px;
+        padding: 16px 0;
+      }
+      .member-list-container {
+        position: relative;
+      }
+      #members-btn {
+        background: var(--background-tertiary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-family: "Poppins", sans-serif;
+        font-size: 14px;
+      }
+      #members-dropdown {
+        display: none; /* Hidden by default */
+        position: absolute;
+        right: 0;
+        top: 100%;
+        margin-top: 5px;
+        background: var(--background-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        width: 200px;
+        padding: 10px;
+        z-index: 10;
+        max-height: 250px;
+        overflow-y: auto;
+      }
+      #members-dropdown.visible {
+        display: block;
+      }
+      #members-dropdown h4 {
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        margin-top: 10px;
+        margin-bottom: 5px;
+      }
+      #members-dropdown p {
+        padding: 5px;
+        border-radius: 4px;
+      }
+      .online-indicator {
+        color: var(--online-color);
+      }
+      .offline-indicator {
+        color: var(--text-secondary);
+      }
+
+      .messages {
+        flex: 1;
+        padding: 16px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .messages::-webkit-scrollbar {
+        width: 8px;
+      }
+      .messages::-webkit-scrollbar-track {
+        background: var(--background-secondary);
+      }
+      .messages::-webkit-scrollbar-thumb {
+        background: var(--background-tertiary);
+        border-radius: 4px;
+      }
+      .messages::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+      .input-area {
+        display: flex;
+        border-top: 1px solid var(--border-color);
+        padding: 12px;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+      .input-area input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        outline: none;
+        background: var(--background-tertiary);
+        color: var(--text-primary);
+        font-size: 15px;
+      }
+      .input-area button {
+        width: 80px;
+        background: var(--primary-accent);
+        color: white;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s;
+      }
+      .input-area button:hover {
+        background: var(--primary-accent-hover);
+      }
+
+      @media (max-width: 900px) {
+        body {
+          overflow: auto;
+        }
+        .main {
+          flex-direction: column;
+          padding: 8px;
+          gap: 8px;
+          height: auto;
+        }
+        .left-panel,
+        .right-panel {
+          flex: none;
+          width: 100%;
+        }
+        .left-panel {
+          height: 60vh;
+          padding: 12px;
+        }
+        .right-panel {
+          height: 40vh;
+        }
+        .room-title {
+          font-size: 16px;
+          padding: 12px 16px;
+        }
+        .video-controls {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .video-controls input,
+        .video-controls button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="{{room_code}}" class="room-title">
+      <strong>Room:</strong> {{room_code}} | <strong>User:</strong> {{username}}
+    </div>
+    <div class="main">
+      <div class="left-panel">
+        <div class="video-controls">
+          <input
+            type="text"
+            id="video-input"
+            placeholder="Enter search keyword or YouTube URL" />
+          <button id="search-btn">Search</button>
+          <button id="play-url-btn">Play URL</button>
+        </div>
+        <div class="video-player-container">
+          <div id="youtube-player-div"></div>
+        </div>
+      </div>
+      <div class="right-panel">
+        <div class="chat-header">
+          <div class="messages-header">Chat</div>
+          <div class="member-list-container">
+            <button id="members-btn">Members</button>
+            <div id="members-dropdown">
+              <!-- Member list will be dynamically populated here -->
+            </div>
+          </div>
+        </div>
+        <div class="messages" id="chatBox"></div>
+        <div class="input-area">
+          <input id="msgInput" type="text" placeholder="Type a message..." />
+          <button id="sendBtn">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const socket = io();
+      const videoInput = document.getElementById("video-input");
+      const searchBtn = document.getElementById("search-btn");
+      const playUrlBtn = document.getElementById("play-url-btn");
+      const membersBtn = document.getElementById("members-btn");
+      const membersDropdown = document.getElementById("members-dropdown");
+      const username = "{{username}}";
+      const room = "{{room_code}}";
+
+      let player;
+      let isLocalEvent = true;
+      let isPlayerReady = false;
+      let initialVideoData = null;
+
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName("script")[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+      function onYouTubeIframeAPIReady() {
+        player = new YT.Player("youtube-player-div", {
+          height: "100%",
+          width: "100%",
+          playerVars: { autoplay: 0, controls: 1, modestbranding: 1, rel: 0 },
+          events: {
+            onReady: onPlayerReady,
+            onStateChange: onPlayerStateChange,
+          },
+        });
+      }
+
+      function onPlayerReady(event) {
+        console.log("YouTube Player is ready.");
+        isPlayerReady = true;
+        if (initialVideoData) {
+          console.log("Loading stored initial video data.");
+          playVideoFromServer(initialVideoData);
+          initialVideoData = null;
+        }
+        setInterval(syncTimeWithServer, 3000);
+      }
+
+      function onPlayerStateChange(event) {
+        if (!isLocalEvent) return;
+        const state = event.data;
+        const currentTime = player.getCurrentTime();
+        if (state === YT.PlayerState.PLAYING) {
+          socket.emit("video_event", { event: "play", time: currentTime });
+        } else if (state === YT.PlayerState.PAUSED) {
+          socket.emit("video_event", { event: "pause", time: currentTime });
+        }
+      }
+
+      function syncTimeWithServer() {
+        if (
+          player &&
+          typeof player.getPlayerState === "function" &&
+          player.getPlayerState() === YT.PlayerState.PLAYING
+        ) {
+          const currentTime = player.getCurrentTime();
+          socket.emit("sync_time", { time: currentTime });
+        }
+      }
+
+      searchBtn.addEventListener("click", () => {
+        const query = videoInput.value.trim();
+        if (query) socket.emit("search_video", { query: query });
+      });
+
+      playUrlBtn.addEventListener("click", () => {
+        const url = videoInput.value.trim();
+        if (url) socket.emit("play_from_url", { url: url });
+      });
+
+      function playVideoFromServer(data) {
+        isLocalEvent = false;
+        const videoId = data.video_id;
+        const startTime = data.start_time || 0;
+        const state = data.state;
+
+        if (player && typeof player.loadVideoById === "function" && videoId) {
+          player.loadVideoById({ videoId: videoId, startSeconds: startTime });
+
+          if (state === "paused") {
+            setTimeout(() => {
+              player.pauseVideo();
+              isLocalEvent = true;
+            }, 1000);
+          } else {
+            // It's playing
+            setTimeout(() => {
+              player.playVideo();
+              isLocalEvent = true;
+            }, 1000);
+          }
+        }
+      }
+
+      socket.on("play_video", (data) => {
+        if (isPlayerReady) {
+          playVideoFromServer(data);
+        } else {
+          console.log("Player not ready. Storing video data to play later.");
+          initialVideoData = data;
+        }
+      });
+
+      socket.on("video_event", (data) => {
+        isLocalEvent = false;
+        const event = data.event;
+        const time = data.time;
+
+        if (player && typeof player.seekTo === "function") {
+          player.seekTo(time, true);
+          if (event === "play") {
+            player.playVideo();
+          } else if (event === "pause") {
+            player.pauseVideo();
+          }
+        }
+        setTimeout(() => {
+          isLocalEvent = true;
+        }, 500);
+      });
+
+      socket.on("error", (data) => {
+        console.error("Server error:", data.message);
+        alert("Error: " + data.message);
+      });
+
+      const userColors = [
+        "#FFAB91",
+        "#81D4FA",
+        "#A5D6A7",
+        "#CE93D8",
+        "#F48FB1",
+        "#FFE082",
+        "#80CBC4",
+        "#FBC02D",
+        "#039BE5",
+        "#43A047",
+      ];
+      function getUserColor(username) {
+        let hash = 0;
+        for (let i = 0; i < username.length; i++) {
+          hash = username.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const index = Math.abs(hash % userColors.length);
+        return userColors[index];
+      }
+
+      socket.emit("join_room", { username: username, room: room });
+      document.getElementById("sendBtn").onclick = () => {
+        const msg = document.getElementById("msgInput").value.trim();
+        if (msg) {
+          socket.emit("send_message", { msg: msg });
+          document.getElementById("msgInput").value = "";
+        }
+      };
+      document
+        .getElementById("msgInput")
+        .addEventListener("keydown", (event) => {
+          if (event.key === "Enter") document.getElementById("sendBtn").click();
+        });
+
+      socket.on("message", (data) => {
+        const chatBox = document.getElementById("chatBox");
+        const msg = data.msg;
+        const p = document.createElement("p");
+
+        const colonIndex = msg.indexOf(":");
+        const isUserMessage =
+          colonIndex > -1 &&
+          !msg.endsWith("has entered the room") &&
+          !msg.endsWith("has left the room");
+
+        if (isUserMessage) {
+          const senderUsername = msg.substring(0, colonIndex);
+          const messageText = msg.substring(colonIndex + 1);
+
+          const usernameSpan = document.createElement("strong");
+          usernameSpan.style.color = getUserColor(senderUsername);
+          usernameSpan.textContent = senderUsername + ":";
+
+          p.appendChild(usernameSpan);
+          p.appendChild(document.createTextNode(messageText));
+        } else {
+          p.textContent = msg;
+          p.style.fontStyle = "italic";
+          p.style.color = "var(--text-secondary)";
+        }
+
+        chatBox.appendChild(p);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+
+      // --- Member List Logic ---
+      membersBtn.addEventListener("click", () => {
+        membersDropdown.classList.toggle("visible");
+      });
+
+      socket.on("update_member_list", (data) => {
+        const allMembers = data.all_members || [];
+        const onlineMembers = data.online_members || [];
+
+        membersBtn.textContent = `Members (${onlineMembers.length}/${allMembers.length})`;
+        membersDropdown.innerHTML = ""; // Clear current list
+
+        const onlineSet = new Set(onlineMembers);
+
+        // Add Online Members
+        const onlineHeader = document.createElement("h4");
+        onlineHeader.textContent = "Online";
+        membersDropdown.appendChild(onlineHeader);
+        if (onlineMembers.length > 0) {
+          onlineMembers.forEach((member) => {
+            const p = document.createElement("p");
+            p.innerHTML = `<span class="online-indicator">●</span> ${member}`;
+            membersDropdown.appendChild(p);
+          });
+        }
+
+        // Add Offline Members
+        const offlineMembers = allMembers.filter(
+          (member) => !onlineSet.has(member)
+        );
+        if (offlineMembers.length > 0) {
+          const offlineHeader = document.createElement("h4");
+          offlineHeader.textContent = "Offline";
+          membersDropdown.appendChild(offlineHeader);
+          offlineMembers.forEach((member) => {
+            const p = document.createElement("p");
+            p.innerHTML = `<span class="offline-indicator">●</span> ${member}`;
+            membersDropdown.appendChild(p);
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

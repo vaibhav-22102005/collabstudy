@@ -1,0 +1,88 @@
+/* General page setup */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f8f8f8;
+}
+
+/* Layout container */
+.container {
+  display: flex;
+  height: 100vh;
+  border: 3px solid black;
+  box-sizing: border-box;
+}
+
+/* Left side (room area) */
+.room {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  border: 3px solid black;
+  margin: 10px;
+  background-color: white;
+}
+
+.room-header {
+  text-align: center;
+  font-weight: bold;
+  padding: 10px;
+  border-bottom: 2px solid black;
+}
+
+.room-content {
+  flex: 1;
+  position: relative;
+}
+
+/* Right side (messages) */
+.messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 3px solid black;
+  margin: 10px;
+  background-color: white;
+}
+
+.messages-header {
+  text-align: center;
+  font-weight: bold;
+  padding: 10px;
+  border-bottom: 2px solid black;
+}
+
+.messages-content {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+/* Message input area */
+.message-input {
+  display: flex;
+  border-top: 2px solid black;
+  padding: 5px;
+}
+
+.message-input input {
+  flex: 1;
+  padding: 5px;
+  font-size: 14px;
+  border: 1px solid black;
+  border-radius: 3px;
+}
+
+.message-input button {
+  margin-left: 5px;
+  padding: 5px 10px;
+  border: 1px solid black;
+  background-color: black;
+  color: white;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.message-input button:hover {
+  background-color: #333;
+}

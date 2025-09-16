@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your Dashboard - CollabStudy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet" />
+    <style>
+      /* Your CSS from the original file... */
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <header class="header">
+        <h1>Welcome, {{ user.name }}!</h1>
+        <a href="#" id="logout-btn" class="logout-btn">Logout</a>
+      </header>
+
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %} {% endif %} {% endwith %}
+
+      <main class="content-grid">
+        <section id="room-management" class="card">
+          <h2>Manage Rooms</h2>
+          <form action="/room" method="POST">
+            <div class="form-group">
+              <label for="room_code">Room Code</label>
+              <input
+                type="text"
+                id="room_code"
+                name="room_code"
+                placeholder="Enter code to join" />
+            </div>
+            <div class="form-actions">
+              <button type="submit" name="action" value="Join" class="join-btn">
+                Join Room
+              </button>
+              <button
+                type="submit"
+                name="action"
+                value="Create"
+                class="create-btn">
+                Create New Room
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section id="recent-rooms" class="card">
+          <h2>Your Rooms</h2>
+          <div class="room-list">
+            <ul>
+              {% if rooms and rooms|length > 0 %} {% for room_code in rooms %}
+              <li class="room-list-item">
+                <div class="room-info">
+                  <span class="room-code">{{ room_code }}</span>
+                </div>
+                <div class="room-actions">
+                  <a href="/room/{{ room_code }}" class="rejoin-btn">Rejoin</a>
+                  <form
+                    action="/leave_room"
+                    method="POST"
+                    style="display: inline">
+                    <input
+                      type="hidden"
+                      name="room_code"
+                      value="{{ room_code }}" />
+                    <button type="submit" class="leave-btn">Leave</button>
+                  </form>
+                </div>
+              </li>
+              {% endfor %} {% else %}
+              <li class="no-rooms">
+                <p>You haven't joined or created any rooms yet.</p>
+              </li>
+              {% endif %}
+            </ul>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <script>
+      // IMPORTANT: Paste your web app's Firebase configuration here again
+      const firebaseConfig = {
+        apiKey: "AIzaSyBFGgk5aVsc10bZACagRGOTIwRXPgQ0DKY",
+        authDomain: "collabstudy-dcfa0.firebaseapp.com",
+        projectId: "collabstudy-dcfa0",
+        storageBucket: "collabstudy-dcfa0.firebasestorage.app",
+        messagingSenderId: "844147179059",
+        appId: "1:844147179059:web:d1a0707c78844a848bad46",
+      };
+
+      // Initialize Firebase
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+
+      const logoutButton = document.getElementById("logout-btn");
+      logoutButton.addEventListener("click", (e) => {
+        e.preventDefault(); // Prevent the default link behavior
+
+        firebase
+          .auth()
+          .signOut()
+          .then(() => {
+            // After successful client-side sign-out, redirect to the server's logout route
+            window.location.href = "/logout";
+          })
+          .catch((error) => {
+            console.error("Logout Error:", error);
+            // Even if client-side logout fails, try to log out from the server
+            window.location.href = "/logout";
+          });
+      });
+    </script>
+  </body>
+</html>
