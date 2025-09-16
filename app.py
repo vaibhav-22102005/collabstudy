@@ -25,7 +25,7 @@ socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
 # --- INITIALIZE FIREBASE ADMIN SDK ---
 try:
     # Use the same service account key you use for Firestore
-    cred = credentials.Certificate('collabstudy-470813-13507e8866d9.json')
+    cred = credentials.Certificate('collabstudy-470813-6f648e26fff2.json')
     firebase_admin.initialize_app(cred)
     print("Successfully initialized Firebase Admin SDK.")
 except Exception as e:
