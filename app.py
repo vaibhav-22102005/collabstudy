@@ -11,11 +11,11 @@ from google.cloud import firestore
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-# Import firebase_admin
+eventlet.monkey_patch()
 import firebase_admin
 from firebase_admin import credentials, auth
 
-eventlet.monkey_patch()
+
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'secret!'
