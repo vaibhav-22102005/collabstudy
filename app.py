@@ -31,7 +31,7 @@ socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
 # --- INITIALIZE FIREBASE ADMIN SDK ---
 try:
     # Use the same service account key you use for Firestore
-    cred = credentials.Certificate('collabstudy-470813-6f648e26fff2.json')
+    cred = credentials.Certificate('collabstudy-dcfa0-firebase-adminsdk-fbsvc-8ebcb816e6.json')
     firebase_admin.initialize_app(cred)
     print("Successfully initialized Firebase Admin SDK.")
 except Exception as e:
@@ -39,10 +39,10 @@ except Exception as e:
 
 
 try:
-    db = firestore.Client.from_service_account_json('collabstudy-470813-6f648e26fff2.json')
+    db = firestore.Client.from_service_account_json('collabstudy-dcfa0-firebase-adminsdk-fbsvc-8ebcb816e6.json')
     print("Successfully connected to Firestore using service account key.")
 except Exception as e:
-    print("CRITICAL: Could not connect to Firestore. Ensure 'collabstudy-470813-13507e8866d9.json' is present and valid.")
+    print("CRITICAL: Could not connect to Firestore. Ensure 'collabstudy-dcfa0-firebase-adminsdk-fbsvc-8ebcb816e6.json' is present and valid.")
     print(e)
     db = None
 
