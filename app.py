@@ -39,7 +39,7 @@ except Exception as e:
 
 
 try:
-    db = firestore.Client.from_service_account_json('collabstudy-470813-13507e8866d9.json')
+    db = firestore.Client.from_service_account_json('collabstudy-470813-6f648e26fff2.json')
     print("Successfully connected to Firestore using service account key.")
 except Exception as e:
     print("CRITICAL: Could not connect to Firestore. Ensure 'collabstudy-470813-13507e8866d9.json' is present and valid.")
